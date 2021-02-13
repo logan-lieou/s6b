@@ -1,4 +1,4 @@
-from flask import Flask, redirect, request, jsonify
+from flask import Flask, request, jsonify
 import json
 from flask_cors import CORS
 import yfinance as yf
@@ -13,15 +13,20 @@ def compute_beta(data):
         cum_sum = 0
         for i in range(len(stocks)):
             temp = yf.Ticker(stocks[i])
-            if(temp.info['beta'] == None):
-                cum_sum += 0
+            if(temp.info['symbol'] == 'SPY'):
+                cum_sum += 1 # SPY has no beta
+            elif(temp.info['beta'] == None):
+                cum_sum += 0 # No beta = 0
             else:
                 cum_sum += temp.info['beta']
         # calculate the average beta of your portfolio
         return cum_sum / len(stocks)
     # make sure the request is valid
-    except KeyError or ValueError:
-        print("Error")
+    except KeyError:
+        print("invalid format for data")
+        return 0.0
+    except ValueError:
+        print("could not find stock")
         return 0.0
 
 @app.route('/tickers', methods = ['POST'])
@@ -36,4 +41,4 @@ def hello_world():
     return 'Finance API'
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="10.0.0.27")
